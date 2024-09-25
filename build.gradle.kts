@@ -76,10 +76,12 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.core:core:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core:1.13.1")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("androidx.viewpager:viewpager:1.0.0")
+
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.20"))
 }
 
 configure<GenerateBpPluginExtension> {

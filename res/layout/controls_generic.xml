@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="164dp"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/knob_container_background"
+    android:background="?attr/colorSurface"
     android:elevation="8dp"
     android:gravity="center"
     android:orientation="vertical"
@@ -25,12 +25,15 @@
             android:ellipsize="end"
             android:fontFamily="sans-serif"
             android:maxLines="1"
-            android:paddingRight="4dp"
             android:text="@string/reverb"
             android:textColor="@color/white"
             android:textSize="@dimen/reverb_switch_label_size" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="wrap_content" />
+
+        <org.lineageos.audiofx.widget.DynamicMaterialSwitch
             android:id="@+id/reverb_switch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

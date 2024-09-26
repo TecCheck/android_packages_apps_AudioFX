@@ -43,6 +43,7 @@ import org.lineageos.audiofx.activity.EqualizerManager;
 import org.lineageos.audiofx.activity.MasterConfigControl;
 import org.lineageos.audiofx.activity.StateCallbacks;
 import org.lineageos.audiofx.eq.EqContainerView;
+import org.lineageos.audiofx.eq.EqSwipeController;
 import org.lineageos.audiofx.preset.InfinitePagerAdapter;
 import org.lineageos.audiofx.preset.InfiniteViewPager;
 import org.lineageos.audiofx.preset.PresetPagerAdapter;
@@ -56,7 +57,7 @@ public class EqualizerFragment extends AudioFxBaseFragment
     private static final boolean DEBUG_VIEWPAGER = false;
 
     private final ArgbEvaluator mArgbEval = new ArgbEvaluator();
-
+    private EqSwipeController mSwipeInterceptor;
     public EqContainerView mEqContainer;
     // current selected index
     public int mSelectedPosition = 0;
@@ -264,9 +265,7 @@ public class EqualizerFragment extends AudioFxBaseFragment
 
     @Override
     public void updateFragmentBackgroundColors(int color) {
-        if (getActivity() != null && getActivity().getWindow() != null) {
-            getActivity().getWindow().getDecorView().setBackgroundColor(color);
-        }
+        mSwipeInterceptor.setBackgroundColor(color);
     }
 
     public void jumpToPreset(int index) {
@@ -366,6 +365,7 @@ public class EqualizerFragment extends AudioFxBaseFragment
                 mEqManager.getCurrentPresetIndex());
         mSelectedPosition = mEqManager.getCurrentPresetIndex();
 
+        mSwipeInterceptor = view.findViewById(R.id.swipe_interceptor);
         mEqContainer = view.findViewById(R.id.eq_container);
         mPresetPager = view.findViewById(R.id.pager);
         mPresetPageIndicator = view.findViewById(R.id.indicator);

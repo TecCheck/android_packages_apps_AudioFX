@@ -26,7 +26,6 @@ import static android.media.AudioDeviceInfo.TYPE_USB_DEVICE;
 import static android.media.AudioDeviceInfo.TYPE_USB_HEADSET;
 import static android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES;
 import static android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET;
-import static android.media.AudioDeviceInfo.convertDeviceTypeToInternalDevice;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -35,6 +34,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.IBinder;
@@ -290,12 +290,12 @@ public class MasterConfigControl {
 
     public AudioDeviceInfo getSystemDevice() {
         if (mCurrentDevice == null) {
-            final int forMusic = mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC);
-            for (AudioDeviceInfo ai : getConnectedDevices()) {
-                if ((convertDeviceTypeToInternalDevice(ai.getType()) & forMusic) > 0) {
-                    return ai;
-                }
-            }
+            // TODO DEBUG ONLY
+            AudioAttributes attributes = new AudioAttributes.Builder()
+                    .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                    .build();
+
+            return mAudioManager.getAudioDevicesForAttributes(attributes).get(0);
         }
         return mCurrentDevice;
     }

@@ -15,9 +15,8 @@
  */
 package org.lineageos.audiofx.service;
 
-import static android.media.AudioDeviceInfo.convertDeviceTypeToInternalDevice;
-
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
@@ -108,14 +107,12 @@ public class AudioOutputChangeListener extends AudioDeviceCallback {
     }
 
     public List<AudioDeviceInfo> getConnectedOutputs() {
-        final List<AudioDeviceInfo> outputs = new ArrayList<AudioDeviceInfo>();
-        final int forMusic = mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC);
-        for (AudioDeviceInfo ai : mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
-            if ((convertDeviceTypeToInternalDevice(ai.getType()) & forMusic) > 0) {
-                outputs.add(ai);
-            }
-        }
-        return outputs;
+        // TODO: DEBUG ONLY
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setLegacyStreamType(AudioManager.STREAM_MUSIC)
+                .build();
+
+        return mAudioManager.getAudioDevicesForAttributes(attributes);
     }
 
     public AudioDeviceInfo getCurrentDevice() {

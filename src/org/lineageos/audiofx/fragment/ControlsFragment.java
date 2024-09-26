@@ -15,10 +15,6 @@
  */
 package org.lineageos.audiofx.fragment;
 
-import android.content.Context;
-import android.content.res.ColorStateList;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.media.AudioDeviceInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,18 +25,16 @@ import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SwitchCompat;
-
-import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.lineageos.audiofx.R;
 import org.lineageos.audiofx.activity.MasterConfigControl;
 import org.lineageos.audiofx.knobs.KnobCommander;
 import org.lineageos.audiofx.knobs.KnobContainer;
+import org.lineageos.audiofx.widget.DynamicMaterialSwitch;
 
 public class ControlsFragment extends AudioFxBaseFragment {
 
-    private static final String TAG = ControlsFragment.class.getSimpleName();
+    private static final String TAG = ControlsFragment2.class.getSimpleName();
     private static final boolean DEBUG = false;
     private final CompoundButton.OnCheckedChangeListener mMaxxVolumeListener = (buttonView, isChecked) -> {
         mConfig.getMaxxVolumeEnabled();
@@ -52,8 +46,8 @@ public class ControlsFragment extends AudioFxBaseFragment {
     };
     KnobCommander mKnobCommander;
     KnobContainer mKnobContainer;
-    MaterialSwitch mMaxxVolumeSwitch;
-    MaterialSwitch mReverbSwitch;
+    DynamicMaterialSwitch mMaxxVolumeSwitch;
+    DynamicMaterialSwitch mReverbSwitch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,10 +74,10 @@ public class ControlsFragment extends AudioFxBaseFragment {
             mKnobContainer.updateKnobHighlights(color);
         }
         if (mMaxxVolumeSwitch != null) {
-            updateSwitchColor(mMaxxVolumeSwitch, color);
+            mMaxxVolumeSwitch.setColor(color);
         }
         if (mReverbSwitch != null) {
-            updateSwitchColor(mReverbSwitch, color);
+            mReverbSwitch.setColor(color);
         }
     }
 
@@ -105,36 +99,6 @@ public class ControlsFragment extends AudioFxBaseFragment {
             mReverbSwitch.setChecked(mConfig.getReverbEnabled());
             mReverbSwitch.setEnabled(currentDeviceEnabled);
         }
-    }
-
-    private void updateSwitchColor(SwitchCompat view, int color) {
-        // This is a little cursed, but I didn't know how else to make it look right
-        float[] hsv = {0, 0, 0};
-
-        Color.colorToHSV(color, hsv);
-        hsv[1] = 0.25f;
-        hsv[2] = 0.99f;
-        int colorTrack = Color.HSVToColor(hsv);
-
-        Color.colorToHSV(color, hsv);
-        hsv[1] = 0.72f;
-        hsv[2] = 0.44f;
-        int colorThumb = Color.HSVToColor(hsv);
-
-        Context context = requireContext();
-        Resources resources = context.getResources();
-        Resources.Theme theme = context.getTheme();
-
-        ColorStateList trackList = resources.getColorStateList(com.google.android.material.R.color.mtrl_switch_track_tint, theme);
-        trackList.getColors()[2] = colorTrack;
-        view.setTrackTintList(trackList);
-
-        ColorStateList thumbList = resources.getColorStateList(com.google.android.material.R.color.mtrl_switch_thumb_tint, theme);
-        thumbList.getColors()[2] = colorThumb;
-        thumbList.getColors()[3] = colorThumb;
-        view.setThumbTintList(thumbList);
-
-        view.invalidate();
     }
 
     @Override

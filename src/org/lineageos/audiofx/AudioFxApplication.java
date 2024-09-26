@@ -17,6 +17,8 @@ package org.lineageos.audiofx;
 
 import android.app.Application;
 
+import com.google.android.material.color.DynamicColors;
+
 public class AudioFxApplication extends Application {
 
     private static final String TAG = AudioFxApplication.class.getSimpleName();
@@ -25,5 +27,6 @@ public class AudioFxApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        DynamicColors.applyToActivitiesIfAvailable(this);
     }
 }

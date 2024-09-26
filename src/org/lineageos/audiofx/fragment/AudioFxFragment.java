@@ -23,12 +23,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioDeviceInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,6 +40,7 @@ import org.lineageos.audiofx.activity.ActivityMusic;
 import org.lineageos.audiofx.activity.EqualizerManager;
 import org.lineageos.audiofx.activity.MasterConfigControl;
 import org.lineageos.audiofx.activity.StateCallbacks;
+import org.lineageos.audiofx.widget.DynamicMaterialSwitch;
 import org.lineageos.audiofx.widget.InterceptableLinearLayout;
 
 public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceChangedCallback {
@@ -52,11 +51,10 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
     // current selected index
     public int mSelectedPosition = 0;
-    Handler mHandler;
     int mCurrentBackgroundColor;
     // whether we are in the middle of animating while switching devices
     EqualizerFragment mEqFragment;
-    ControlsFragment mControlFragment;
+    ControlsFragment2 mControlFragment;
 
     InterceptableLinearLayout mInterceptLayout;
     private ValueAnimator mColorChangeAnimator;
@@ -65,6 +63,7 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
     private MasterConfigControl mConfig;
     private EqualizerManager mEqManager;
 
+    private DynamicMaterialSwitch currentDeviceToggle = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,10 +72,7 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
         mConfig = MasterConfigControl.getInstance(getActivity());
         mEqManager = mConfig.getEqualizerManager();
 
-        mHandler = new Handler();
         mDisabledColor = getResources().getColor(R.color.disabled_eq);
-
-        setHasOptionsMenu(true);
     }
 
     private boolean showFragments() {
@@ -93,7 +89,7 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
         }
 
         if (mControlFragment == null) {
-            mControlFragment = (ControlsFragment) getChildFragmentManager().findFragmentByTag(TAG_CONTROLS);
+            mControlFragment = (ControlsFragment2) getChildFragmentManager().findFragmentByTag(TAG_CONTROLS);
             if (mControlFragment != null) {
                 fragmentTransaction.show(mControlFragment);
             }
@@ -110,7 +106,6 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
 
     @Override
     public void onResume() {
-
         mConfig.getCallbacks().addDeviceChangedCallback(this);
         mConfig.bindService();
         mConfig.setAutoBindToService(true);
@@ -156,11 +151,18 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
             mColorChangeAnimator.cancel();
         }
         mCurrentBackgroundColor = color;
+        Log.d(TAG, "Set color: " + color);
+
         if (mEqFragment != null) {
             mEqFragment.updateFragmentBackgroundColors(color);
         }
         if (mControlFragment != null) {
             mControlFragment.updateFragmentBackgroundColors(color);
+        }
+        if (currentDeviceToggle != null) {
+            Log.d(TAG, "Toggle: " + color);
+
+            currentDeviceToggle.setColor(color);
         }
     }
 
@@ -172,9 +174,6 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
         if (mControlFragment != null) {
             mControlFragment.updateEnabledState();
         }
-
-        ((ActivityMusic) getActivity()).setGlobalToggleChecked(currentDeviceEnabled);
-
         if (mInterceptLayout != null) {
             mInterceptLayout.setInterception(!currentDeviceEnabled);
         }
@@ -200,7 +199,7 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
 
         if (createNewFrags) {
             fragmentTransaction.add(R.id.equalizer, mEqFragment = new EqualizerFragment(), TAG_EQUALIZER);
-            fragmentTransaction.add(R.id.controls, mControlFragment = new ControlsFragment(), TAG_CONTROLS);
+            fragmentTransaction.add(R.id.controls, mControlFragment = new ControlsFragment2(), TAG_CONTROLS);
         }
 
         fragmentTransaction.commit();
@@ -256,20 +255,14 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
         getActivity().invalidateOptionsMenu();
     }
 
-    public CompoundButton getGlobalSwitch() {
-        return ((ActivityMusic) getActivity()).getGlobalSwitch();
-    }
-
     @Override
     public void onGlobalDeviceToggle(final boolean checked) {
-        final CompoundButton buttonView = getGlobalSwitch();
         final Animator.AnimatorListener animatorListener = new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(@NonNull Animator animation) {
                 if (checked) {
                     updateEnabledState();
                 }
-                buttonView.setEnabled(false);
             }
 
             @Override
@@ -277,12 +270,10 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
                 if (!checked) {
                     updateEnabledState();
                 }
-                buttonView.setEnabled(true);
             }
 
             @Override
             public void onAnimationCancel(@NonNull Animator animation) {
-                buttonView.setEnabled(true);
             }
 
             @Override
@@ -296,6 +287,10 @@ public class AudioFxFragment extends Fragment implements StateCallbacks.DeviceCh
 
     public int getDisabledColor() {
         return mDisabledColor;
+    }
+
+    public void setCurrentDeviceToggle(DynamicMaterialSwitch currentDeviceToggle) {
+        this.currentDeviceToggle = currentDeviceToggle;
     }
 
     public static class ColorUpdateListener implements ValueAnimator.AnimatorUpdateListener {

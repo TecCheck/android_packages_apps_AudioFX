@@ -9,9 +9,7 @@ import org.lineageos.generatebp.models.Module
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "8.2.2" apply true
-    id("com.android.library") version "8.2.2" apply false
-
+    id("com.android.application") version "8.2.2"
     id("org.jetbrains.kotlin.android") version "2.0.20"
 }
 
@@ -90,6 +88,7 @@ dependencies {
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("androidx.viewpager:viewpager:1.0.0")
     implementation("com.google.android.material:material:1.12.0")
+    //compileOnly(files("android_c.jar"))
 
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.20"))
 }

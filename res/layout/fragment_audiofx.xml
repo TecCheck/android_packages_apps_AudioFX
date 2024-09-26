@@ -17,7 +17,7 @@
     <!-- knobs -->
     <FrameLayout
         android:id="@+id/controls"
-        class="org.lineageos.audiofx.fragment.ControlsFragment"
+        class="org.lineageos.audiofx.fragment.ControlsFragment2"
         android:layout_width="match_parent"
         android:layout_height="160dp"
         android:layout_weight="0" />

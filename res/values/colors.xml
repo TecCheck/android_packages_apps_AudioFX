@@ -76,6 +76,21 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <color name="preset_rock">#9A62CB</color>
     <color name="preset_electronic">#C862C5</color>
     <color name="preset_small_speakers">#CB629A</color>
+
+    <color name="preset_custom_variant">#CE5B4C</color>
+    <color name="preset_normal_variant">#CB6139</color>
+    <color name="preset_classical_variant">#BE963F</color>
+    <color name="preset_dance_variant">#BEBD3F</color>
+    <color name="preset_flat_variant">#84B74E</color>
+    <color name="preset_folk_variant">#80B74F</color>
+    <color name="preset_metal_variant">#65B759</color>
+    <color name="preset_hiphop_variant">#5CB797</color>
+    <color name="preset_jazz_variant">#5B82B7</color>
+    <color name="preset_pop_variant">#585DCA</color>
+    <color name="preset_rock_variant">#9A62CB</color>
+    <color name="preset_electronic_variant">#C862C5</color>
+    <color name="preset_small_speakers_variant">#CB629A</color>
+
     <color name="band_bar_color_selected">#ffffffff</color>
     <color name="knob_container_background">#323437</color>
     <color name="disabled_eq">#ff6c6c6c</color>

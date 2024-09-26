@@ -18,18 +18,20 @@ package org.lineageos.audiofx.activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.media.AudioDeviceInfo;
 import android.os.Bundle;
+import android.util.ArrayMap;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewStub;
 import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
+
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.lineageos.audiofx.Constants;
 import org.lineageos.audiofx.R;
@@ -37,34 +39,45 @@ import org.lineageos.audiofx.fragment.AudioFxFragment;
 import org.lineageos.audiofx.service.AudioFxService;
 import org.lineageos.audiofx.service.DevicePreferenceManager;
 
+import java.util.List;
+import java.util.Map;
+
 public class ActivityMusic extends AppCompatActivity {
 
     public static final String TAG_AUDIOFX = "audiofx";
     public static final String EXTRA_CALLING_PACKAGE = "audiofx::extra_calling_package";
     private static final String TAG = ActivityMusic.class.getSimpleName();
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+
     MasterConfigControl mConfig;
-    private final CompoundButton.OnCheckedChangeListener mGlobalEnableToggleListener
-            = new CompoundButton.OnCheckedChangeListener() {
+    private final CompoundButton.OnCheckedChangeListener mGlobalEnableToggleListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
-        public void onCheckedChanged(final CompoundButton buttonView,
-                                     final boolean isChecked) {
+        public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
             mConfig.setCurrentDeviceEnabled(isChecked);
         }
     };
+
+    private final Map<MenuItem, AudioDeviceInfo> mMenuItems = new ArrayMap<>();
+    private MenuItem mMenuDevices;
+    boolean mDeviceChanging;
+
+    private AudioDeviceInfo mSystemDevice;
+    private AudioDeviceInfo mUserSelection;
+
     String mCallingPackage;
-    private SwitchCompat mCurrentDeviceToggle;
+    private MaterialSwitch mCurrentDeviceToggle;
     private boolean mWaitingForService = true;
     private SharedPreferences.OnSharedPreferenceChangeListener mServiceReadyObserver;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         if (DEBUG) {
-            Log.i(TAG, "onCreate() called with "
-                    + "savedInstanceState = [" + savedInstanceState + "]");
+            Log.i(TAG, "onCreate() called with " + "savedInstanceState = [" + savedInstanceState + "]");
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setSupportActionBar(findViewById(R.id.toolbar));
 
         mCallingPackage = getIntent().getStringExtra(EXTRA_CALLING_PACKAGE);
         Log.i(TAG, "calling package: " + mCallingPackage);
@@ -73,13 +86,20 @@ public class ActivityMusic extends AppCompatActivity {
 
         final SharedPreferences globalPrefs = Constants.getGlobalPrefs(this);
 
+        if (savedInstanceState != null) {
+            int user = savedInstanceState.getInt("user_device");
+            mUserSelection = mConfig.getDeviceById(user);
+            int system = savedInstanceState.getInt("system_device");
+            mSystemDevice = mConfig.getDeviceById(system);
+        }
+
+
         mWaitingForService = !defaultsSetup();
         if (mWaitingForService) {
             Log.w(TAG, "waiting for service.");
             mServiceReadyObserver = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 @Override
-                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                                                      String key) {
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                     if (key.equals(Constants.SAVED_DEFAULTS) && defaultsSetup()) {
                         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
                         mConfig.onResetDefaults();
@@ -118,47 +138,141 @@ public class ActivityMusic extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (mServiceReadyObserver != null) {
-            Constants.getGlobalPrefs(this)
-                    .unregisterOnSharedPreferenceChangeListener(mServiceReadyObserver);
+            Constants.getGlobalPrefs(this).unregisterOnSharedPreferenceChangeListener(mServiceReadyObserver);
             mServiceReadyObserver = null;
         }
         super.onDestroy();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.devices, menu);
+        mMenuDevices = menu.findItem(R.id.devices);
+
+        mCurrentDeviceToggle = menu.findItem(R.id.global_toggle).getActionView().findViewById(R.id.menu_switch);
+        mCurrentDeviceToggle.setOnCheckedChangeListener(mGlobalEnableToggleListener);
+        setGlobalToggleChecked(mConfig.isCurrentDeviceEnabled());
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        mMenuDevices.getSubMenu().clear();
+        mMenuItems.clear();
+
+        final AudioDeviceInfo currentDevice = mConfig.getCurrentDevice();
+
+        MenuItem selectedItem = null;
+
+        List<AudioDeviceInfo> speakerDevices = mConfig.getConnectedDevices(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER);
+        if (speakerDevices.size() > 0) {
+            AudioDeviceInfo ai = speakerDevices.get(0);
+            int viewId = View.generateViewId();
+            MenuItem item = mMenuDevices.getSubMenu().add(R.id.devices, viewId, Menu.NONE, MasterConfigControl.getDeviceDisplayString(this, ai));
+            item.setIcon(R.drawable.ic_action_dsp_icons_speaker);
+            mMenuItems.put(item, ai);
+            selectedItem = item;
+        }
+
+        List<AudioDeviceInfo> headsetDevices = mConfig.getConnectedDevices(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_WIRED_HEADSET);
+        if (headsetDevices.size() > 0) {
+            AudioDeviceInfo ai = headsetDevices.get(0);
+            int viewId = View.generateViewId();
+            MenuItem item = mMenuDevices.getSubMenu().add(R.id.devices, viewId, Menu.NONE, MasterConfigControl.getDeviceDisplayString(this, ai));
+            item.setIcon(R.drawable.ic_action_dsp_icons_headphones);
+            mMenuItems.put(item, ai);
+            if (currentDevice.getId() == ai.getId()) {
+                selectedItem = item;
+            }
+        }
+
+        List<AudioDeviceInfo> lineOutDevices = mConfig.getConnectedDevices(AudioDeviceInfo.TYPE_LINE_ANALOG, AudioDeviceInfo.TYPE_LINE_DIGITAL);
+        if (lineOutDevices.size() > 0) {
+            AudioDeviceInfo ai = lineOutDevices.get(0);
+            int viewId = View.generateViewId();
+            MenuItem item = mMenuDevices.getSubMenu().add(R.id.devices, viewId, Menu.NONE, MasterConfigControl.getDeviceDisplayString(this, ai));
+            item.setIcon(R.drawable.ic_action_dsp_icons_lineout);
+            mMenuItems.put(item, ai);
+            if (currentDevice.getId() == ai.getId()) {
+                selectedItem = item;
+            }
+        }
+
+        List<AudioDeviceInfo> bluetoothDevices = mConfig.getConnectedDevices(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP);
+        for (AudioDeviceInfo ai : bluetoothDevices) {
+            int viewId = View.generateViewId();
+            MenuItem item = mMenuDevices.getSubMenu().add(R.id.devices, viewId, Menu.NONE, MasterConfigControl.getDeviceDisplayString(this, ai));
+            item.setIcon(R.drawable.ic_action_dsp_icons_bluetooth);
+            mMenuItems.put(item, ai);
+            if (currentDevice.getId() == ai.getId()) {
+                selectedItem = item;
+            }
+        }
+
+        List<AudioDeviceInfo> usbDevices = mConfig.getConnectedDevices(AudioDeviceInfo.TYPE_USB_ACCESSORY, AudioDeviceInfo.TYPE_USB_DEVICE, AudioDeviceInfo.TYPE_USB_HEADSET);
+        for (AudioDeviceInfo ai : usbDevices) {
+            int viewId = View.generateViewId();
+            MenuItem item = mMenuDevices.getSubMenu().add(R.id.devices, viewId, Menu.NONE, MasterConfigControl.getDeviceDisplayString(this, ai));
+            item.setIcon(R.drawable.ic_action_device_usb);
+            mMenuItems.put(item, ai);
+            if (currentDevice.getId() == ai.getId()) {
+                selectedItem = item;
+            }
+        }
+        mMenuDevices.getSubMenu().setGroupCheckable(R.id.devices, true, true);
+        if (selectedItem != null) {
+            selectedItem.setChecked(true);
+            mMenuDevices.setIcon(selectedItem.getIcon());
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        AudioDeviceInfo device = mMenuItems.get(item);
+
+        if (device != null) {
+            mDeviceChanging = true;
+            if (item.isCheckable()) {
+                item.setChecked(!item.isChecked());
+            }
+            mSystemDevice = mConfig.getSystemDevice();
+            mUserSelection = device;
+            this.runOnUiThread(() -> mConfig.setCurrentDevice(mUserSelection, true));
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("user_device", mUserSelection == null ? -1 : mUserSelection.getId());
+        outState.putInt("system_device", mSystemDevice == null ? -1 : mSystemDevice.getId());
+    }
+
     private void init(Bundle savedInstanceState) {
         mConfig = MasterConfigControl.getInstance(this);
 
-        androidx.appcompat.app.ActionBar ab = getSupportActionBar();
-        ab.setTitle(R.string.app_name_lineage);
-        ab.setDisplayShowTitleEnabled(true);
-
-        final View extraView = LayoutInflater.from(this)
-                .inflate(R.layout.action_bar_custom_components, null);
-        ActionBar.LayoutParams lp = new ActionBar.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT,
-                ActionBar.LayoutParams.WRAP_CONTENT, Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-        ab.setCustomView(extraView, lp);
-        ab.setDisplayShowCustomEnabled(true);
-
-        mCurrentDeviceToggle = ab.getCustomView().findViewById(R.id.global_toggle);
-        mCurrentDeviceToggle.setOnCheckedChangeListener(mGlobalEnableToggleListener);
-
         if (savedInstanceState == null && findViewById(R.id.main_fragment) != null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.main_fragment, new AudioFxFragment(), TAG_AUDIOFX)
-                    .commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.main_fragment, new AudioFxFragment(), TAG_AUDIOFX).commit();
         }
+
         applyOemDecor();
     }
 
     private void applyOemDecor() {
-        ActionBar ab = getSupportActionBar();
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar == null) return;
+
         if (mConfig.hasMaxxAudio()) {
-            ab.setSubtitle(R.string.powered_by_maxx_audio);
+            actionBar.setSubtitle(R.string.powered_by_maxx_audio);
         } else if (mConfig.hasDts()) {
-            final ViewStub stub = ab.getCustomView().findViewById(R.id.logo_stub);
-            stub.setLayoutResource(R.layout.action_bar_dts_logo);
-            stub.inflate();
+            actionBar.setIcon(R.drawable.logo_dts_fc);
         }
     }
 
@@ -166,8 +280,7 @@ public class ActivityMusic extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (DEBUG) {
-            Log.i(TAG, "onConfigurationChanged() called with "
-                    + "newConfig = [" + newConfig + "]");
+            Log.i(TAG, "onConfigurationChanged() called with " + "newConfig = [" + newConfig + "]");
         }
         if (newConfig.orientation != getResources().getConfiguration().orientation) {
             mCurrentDeviceToggle = null;
@@ -182,7 +295,11 @@ public class ActivityMusic extends AppCompatActivity {
         }
     }
 
-    public CompoundButton getGlobalSwitch() {
+    public MaterialSwitch getGlobalSwitch() {
+        if (mCurrentDeviceToggle == null) {
+            mCurrentDeviceToggle = findViewById(R.id.global_toggle);
+        }
+
         return mCurrentDeviceToggle;
     }
 }

@@ -346,10 +346,14 @@ public class MasterConfigControl {
     }
 
     public boolean hasDts() {
+        // TODO: DEBUG
+        if (false) return true;
         return getGlobalPrefs().getBoolean(Constants.AUDIOFX_GLOBAL_HAS_DTS, false);
     }
 
     public boolean hasMaxxAudio() {
+        // TODO: DEBUG
+        if (false) return true;
         return getGlobalPrefs().getBoolean(Constants.AUDIOFX_GLOBAL_HAS_MAXXAUDIO, false);
     }
 

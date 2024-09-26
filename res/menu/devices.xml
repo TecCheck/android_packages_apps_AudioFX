@@ -13,12 +13,17 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/global_toggle"
+        app:actionLayout="@layout/menu_item_switch"
+        app:showAsAction="always" />
     <item
         android:id="@+id/devices"
         android:icon="@drawable/ic_action_dsp_icons_speaker"
-        android:showAsAction="ifRoom"
-        android:title="@string/devices">
+        android:title="@string/devices"
+        app:showAsAction="ifRoom">
         <menu>
             <group android:id="@+id/device_group"></group>
         </menu>

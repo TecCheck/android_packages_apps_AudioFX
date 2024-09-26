@@ -15,9 +15,10 @@
  */
 package org.lineageos.audiofx.fragment;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.media.AudioDeviceInfo;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +31,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
+
 import org.lineageos.audiofx.R;
 import org.lineageos.audiofx.activity.MasterConfigControl;
 import org.lineageos.audiofx.knobs.KnobCommander;
@@ -39,20 +42,18 @@ public class ControlsFragment extends AudioFxBaseFragment {
 
     private static final String TAG = ControlsFragment.class.getSimpleName();
     private static final boolean DEBUG = false;
-    private final CompoundButton.OnCheckedChangeListener mMaxxVolumeListener
-            = (buttonView, isChecked) -> {
+    private final CompoundButton.OnCheckedChangeListener mMaxxVolumeListener = (buttonView, isChecked) -> {
         mConfig.getMaxxVolumeEnabled();
         mConfig.setMaxxVolumeEnabled(isChecked);
     };
-    private final CompoundButton.OnCheckedChangeListener mReverbListener
-            = (buttonView, isChecked) -> {
+    private final CompoundButton.OnCheckedChangeListener mReverbListener = (buttonView, isChecked) -> {
         mConfig.getReverbEnabled();
         mConfig.setReverbEnabled(isChecked);
     };
     KnobCommander mKnobCommander;
     KnobContainer mKnobContainer;
-    SwitchCompat mMaxxVolumeSwitch;
-    SwitchCompat mReverbSwitch;
+    MaterialSwitch mMaxxVolumeSwitch;
+    MaterialSwitch mReverbSwitch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,16 +64,14 @@ public class ControlsFragment extends AudioFxBaseFragment {
 
     @Override
     public void onPause() {
-        MasterConfigControl.getInstance(getActivity()).getCallbacks().removeDeviceChangedCallback(
-                mKnobContainer);
+        MasterConfigControl.getInstance(getActivity()).getCallbacks().removeDeviceChangedCallback(mKnobContainer);
         super.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        MasterConfigControl.getInstance(getActivity()).getCallbacks().addDeviceChangedCallback(
-                mKnobContainer);
+        MasterConfigControl.getInstance(getActivity()).getCallbacks().addDeviceChangedCallback(mKnobContainer);
     }
 
     @Override
@@ -109,43 +108,38 @@ public class ControlsFragment extends AudioFxBaseFragment {
     }
 
     private void updateSwitchColor(SwitchCompat view, int color) {
-        ColorStateList thumbStates = new ColorStateList(
-                new int[][]{
-                        new int[]{-android.R.attr.state_enabled},
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{}
-                },
-                new int[]{
-                        color,
-                        color,
-                        Color.LTGRAY
-                }
-        );
+        // This is a little cursed, but I didn't know how else to make it look right
+        float[] hsv = {0, 0, 0};
 
-        ColorStateList trackStates = new ColorStateList(
-                new int[][]{
-                        new int[]{-android.R.attr.state_enabled},
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{}
-                },
-                new int[]{
-                        color,
-                        color,
-                        Color.GRAY
-                }
-        );
+        Color.colorToHSV(color, hsv);
+        hsv[1] = 0.25f;
+        hsv[2] = 0.99f;
+        int colorTrack = Color.HSVToColor(hsv);
 
-        view.setThumbTintList(thumbStates);
-        view.setTrackTintList(trackStates);
-        view.setTrackTintMode(PorterDuff.Mode.OVERLAY);
+        Color.colorToHSV(color, hsv);
+        hsv[1] = 0.72f;
+        hsv[2] = 0.44f;
+        int colorThumb = Color.HSVToColor(hsv);
+
+        Context context = requireContext();
+        Resources resources = context.getResources();
+        Resources.Theme theme = context.getTheme();
+
+        ColorStateList trackList = resources.getColorStateList(com.google.android.material.R.color.mtrl_switch_track_tint, theme);
+        trackList.getColors()[2] = colorTrack;
+        view.setTrackTintList(trackList);
+
+        ColorStateList thumbList = resources.getColorStateList(com.google.android.material.R.color.mtrl_switch_thumb_tint, theme);
+        thumbList.getColors()[2] = colorThumb;
+        thumbList.getColors()[3] = colorThumb;
+        view.setThumbTintList(thumbList);
+
         view.invalidate();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(mConfig.hasMaxxAudio() ? R.layout.controls_maxx_audio
-                : R.layout.controls_generic, container, false);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(mConfig.hasMaxxAudio() ? R.layout.controls_maxx_audio : R.layout.controls_generic, container, false);
     }
 
     @Override
@@ -165,6 +159,4 @@ public class ControlsFragment extends AudioFxBaseFragment {
             mReverbSwitch.setOnCheckedChangeListener(mReverbListener);
         }
     }
-
-
 }

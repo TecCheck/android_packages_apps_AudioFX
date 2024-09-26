@@ -9,8 +9,9 @@ import org.lineageos.generatebp.models.Module
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "8.2.1" apply true
-    id("com.android.library") version "8.2.1" apply false
+    id("com.android.application") version "8.2.2" apply true
+    id("com.android.library") version "8.2.2" apply false
+
     id("org.jetbrains.kotlin.android") version "2.0.20"
 }
 
@@ -21,10 +22,13 @@ apply {
 buildscript {
     repositories {
         maven("https://raw.githubusercontent.com/lineage-next/gradle-generatebp/v1.6/.m2")
+        mavenCentral()
+        google()
     }
 
     dependencies {
         classpath("org.lineageos:gradle-generatebp:+")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
     }
 }
 
@@ -35,7 +39,7 @@ android {
     defaultConfig {
         applicationId = "org.lineageos.audiofx"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
@@ -74,15 +78,20 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.core:core:1.13.1")
+    implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("androidx.viewpager:viewpager:1.0.0")
+    implementation("com.google.android.material:material:1.12.0")
 
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.20"))
+    //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.20"))
 }
 
 configure<GenerateBpPluginExtension> {

@@ -15,7 +15,6 @@
  */
 package org.lineageos.audiofx.activity;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -28,6 +27,7 @@ import android.view.ViewStub;
 import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
@@ -128,7 +128,7 @@ public class ActivityMusic extends AppCompatActivity {
     private void init(Bundle savedInstanceState) {
         mConfig = MasterConfigControl.getInstance(this);
 
-        ActionBar ab = getActionBar();
+        androidx.appcompat.app.ActionBar ab = getSupportActionBar();
         ab.setTitle(R.string.app_name_lineage);
         ab.setDisplayShowTitleEnabled(true);
 
@@ -152,7 +152,7 @@ public class ActivityMusic extends AppCompatActivity {
     }
 
     private void applyOemDecor() {
-        ActionBar ab = getActionBar();
+        ActionBar ab = getSupportActionBar();
         if (mConfig.hasMaxxAudio()) {
             ab.setSubtitle(R.string.powered_by_maxx_audio);
         } else if (mConfig.hasDts()) {

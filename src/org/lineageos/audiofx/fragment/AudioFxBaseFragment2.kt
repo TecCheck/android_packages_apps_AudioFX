@@ -3,13 +3,13 @@ package org.lineageos.audiofx.fragment
 import android.animation.Animator
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import org.lineageos.audiofx.activity.EqualizerManager
 import org.lineageos.audiofx.activity.MasterConfigControl
 import org.lineageos.audiofx.fragment.AudioFxFragment.ColorUpdateListener
 
 open class AudioFxBaseFragment2 : Fragment() {
-
     protected lateinit var config: MasterConfigControl
-    protected val eqManager get() = config.equalizerManager
+    protected val eqManager: EqualizerManager get() = config.equalizerManager
 
     private var parent: AudioFxFragment2? = null
 
@@ -23,9 +23,8 @@ open class AudioFxBaseFragment2 : Fragment() {
         config = MasterConfigControl.getInstance(activity)
     }
 
-    protected fun getPresetColor(presetIndex: Int = eqManager.currentPresetIndex): Int? {
-        return parent?.getPresetColor(presetIndex)
-    }
+    protected fun getPresetColor(presetIndex: Int = eqManager.currentPresetIndex): Int? =
+        parent?.getPresetColor(presetIndex)
 
     fun animateBackgroundColorTo(
         colorTo: Int, listener: Animator.AnimatorListener?, updateListener: ColorUpdateListener?

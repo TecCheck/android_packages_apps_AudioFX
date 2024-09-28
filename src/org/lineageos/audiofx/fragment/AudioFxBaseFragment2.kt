@@ -23,6 +23,10 @@ open class AudioFxBaseFragment2 : Fragment() {
         config = MasterConfigControl.getInstance(activity)
     }
 
+    protected fun getPresetColor(presetIndex: Int = eqManager.currentPresetIndex): Int? {
+        return parent?.getPresetColor(presetIndex)
+    }
+
     fun animateBackgroundColorTo(
         colorTo: Int, listener: Animator.AnimatorListener?, updateListener: ColorUpdateListener?
     ) = parent?.animateColorTo(colorTo, listener, updateListener)

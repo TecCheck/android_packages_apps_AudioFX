@@ -169,12 +169,12 @@ class AudioFxFragment2 : Fragment(), DeviceChangedCallback {
         interceptLayout.setInterception(!config.isCurrentDeviceEnabled)
     }
 
-    private fun getNextColor(): Int {
+    fun getPresetColor(presetIndex: Int = eqManager.currentPresetIndex): Int {
         return if (!config.isCurrentDeviceEnabled) disabledColor
-        else eqManager.getAssociatedPresetColorHex(eqManager.currentPresetIndex)
+        else eqManager.getAssociatedPresetColorHex(presetIndex)
     }
 
-    fun updateColor() = updateColor(getNextColor(), false)
+    fun updateColor() = updateColor(getPresetColor(), false)
 
     fun updateColor(color: Int, cancelAnimated: Boolean) {
         if (cancelAnimated) colorAnimator?.cancel()
@@ -189,7 +189,7 @@ class AudioFxFragment2 : Fragment(), DeviceChangedCallback {
 
     fun animateColorToNext(
         listener: Animator.AnimatorListener?, updateListener: ColorUpdateListener?
-    ) = animateColorTo(getNextColor(), listener, updateListener)
+    ) = animateColorTo(getPresetColor(), listener, updateListener)
 
 
     fun animateColorTo(

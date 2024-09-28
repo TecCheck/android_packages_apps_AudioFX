@@ -180,7 +180,7 @@ class EqualizerFragment2 : AudioFxBaseFragment2(), DeviceChangedCallback, EqUpda
                 eqManager.setAnimatingToCustom(false)
             } else {
                 if (mState == ViewPager.SCROLL_STATE_IDLE) {
-                    animateBackgroundColorToNext(null, null)
+                    animateBackgroundColorTo(getPresetColor(mSelectedPosition) ?: 0, null, null)
                     eqManager.isChangingPresets = false
                     eqManager.setPreset(mSelectedPosition)
                 } else {
@@ -320,6 +320,7 @@ class EqualizerFragment2 : AudioFxBaseFragment2(), DeviceChangedCallback, EqUpda
             override fun onAnimationRepeat(animation: Animator) {}
         }
 
+        /*
         val animatorUpdateListener: ColorUpdateListener = object : ColorUpdateListener(this) {
             override fun onAnimationUpdate(animator: ValueAnimator) {
                 super.onAnimationUpdate(animator)
@@ -335,7 +336,10 @@ class EqualizerFragment2 : AudioFxBaseFragment2(), DeviceChangedCallback, EqUpda
             }
         }
 
-        animateBackgroundColorToNext(animatorListener, animatorUpdateListener)
+         */
+
+        //animateBackgroundColorToNext(animatorListener, animatorUpdateListener)
+        animateBackgroundColorToNext(animatorListener, null)
     }
 
     override fun onGlobalDeviceToggle(on: Boolean) {
@@ -343,17 +347,53 @@ class EqualizerFragment2 : AudioFxBaseFragment2(), DeviceChangedCallback, EqUpda
         mFakePager.setCurrentItem(mFakePager.currentItem, true)
     }
 
+
     override fun onBandLevelChange(band: Int, dB: Float, fromSystem: Boolean) {
-        //TODO("Not yet implemented")
+        // call backs we get when bands are changing, check if the user is physically touching them
+        // and set the preset to "custom" and do proper animations.
+        if (!fromSystem) { // from user
+            if (!eqManager.isCustomPreset // not on custom already
+                && !eqManager.isUserPreset() // or not on a user preset
+                && !eqManager.isAnimatingToCustom
+            ) { // and animation hasn't started
+                if (DEBUG) Log.w(TAG, "met conditions to start an animation to custom trigger")
+                // view pager is infinite, so we can't set the item to 0. find NEXT 0
+                eqManager.setAnimatingToCustom(true)
+
+                val newIndex: Int = eqManager.copyToCustom()
+
+                mInfiniteAdapter.notifyDataSetChanged()
+                mDataAdapter.notifyDataSetChanged()
+                // do background transition manually as viewpager can't handle this bg change
+
+                val listener: Animator.AnimatorListener = object : Animator.AnimatorListener {
+                    override fun onAnimationStart(animation: Animator) {
+                        var diff = newIndex - (mCurrentRealPage % mDataAdapter.count)
+                        diff += mDataAdapter.count
+                        val newPage = mCurrentRealPage + diff
+
+                        mAnimatingToRealPageTarget = newPage
+                        mPresetPager.setCurrentItemAbsolute(newPage)
+                    }
+
+                    override fun onAnimationEnd(animation: Animator) {}
+
+                    override fun onAnimationCancel(animation: Animator) {}
+
+                    override fun onAnimationRepeat(animation: Animator) {}
+                }
+                animateBackgroundColorTo(getPresetColor(newIndex) ?: 0, listener, null)
+            }
+            mSelectedPositionBands[band] = dB
+        }
     }
 
-    override fun onPresetChanged(newPresetIndex: Int) {
-        //TODO("Not yet implemented")
-    }
+    override fun onPresetChanged(newPresetIndex: Int) {}
 
     override fun onPresetsChanged() {
-        //TODO("Not yet implemented")
+        mDataAdapter.notifyDataSetChanged()
     }
+
     // END State callbacks
 
     private fun jumpToPreset(index: Int) {

@@ -88,6 +88,10 @@ dependencies {
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("androidx.viewpager:viewpager:1.0.0")
     implementation("com.google.android.material:material:1.12.0")
+
+    implementation("androidx.fragment:fragment-ktx:1.8.3")
+
+
     //compileOnly(files("android_c.jar"))
 
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:2.0.20"))

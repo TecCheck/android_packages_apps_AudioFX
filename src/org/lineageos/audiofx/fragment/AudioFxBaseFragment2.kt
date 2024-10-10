@@ -2,12 +2,13 @@ package org.lineageos.audiofx.fragment
 
 import android.animation.Animator
 import android.os.Bundle
+import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import org.lineageos.audiofx.activity.EqualizerManager
 import org.lineageos.audiofx.activity.MasterConfigControl
 import org.lineageos.audiofx.fragment.AudioFxFragment.ColorUpdateListener
 
-open class AudioFxBaseFragment2 : Fragment() {
+open class AudioFxBaseFragment2(@LayoutRes contentLayoutId: Int = 0) : Fragment(contentLayoutId) {
     protected lateinit var config: MasterConfigControl
     protected val eqManager: EqualizerManager get() = config.equalizerManager
 

@@ -21,6 +21,7 @@ import org.lineageos.audiofx.activity.EqualizerManager
 import org.lineageos.audiofx.activity.MasterConfigControl
 import org.lineageos.audiofx.activity.StateCallbacks.DeviceChangedCallback
 import org.lineageos.audiofx.fragment.AudioFxFragment.ColorUpdateListener
+import org.lineageos.audiofx.fragment.eq3.EqualizerFragment3
 import org.lineageos.audiofx.widget.DynamicMaterialSwitch
 import org.lineageos.audiofx.widget.InterceptableLinearLayout
 
@@ -40,7 +41,7 @@ class AudioFxFragment2 : Fragment(), DeviceChangedCallback {
     }
 
     private lateinit var interceptLayout: InterceptableLinearLayout
-    private var eqFragment: EqualizerFragment2? = null
+    private var eqFragment: EqualizerFragment3? = null
     private var controlFragment: ControlsFragment2? = null
 
     private val currentDeviceToggle: DynamicMaterialSwitch? = null
@@ -130,11 +131,11 @@ class AudioFxFragment2 : Fragment(), DeviceChangedCallback {
         val fragmentTransaction = childFragmentManager.beginTransaction()
 
         if (eqFragment == null && savedInstanceState != null) {
-            eqFragment = childFragmentManager.findFragmentByTag(TAG_EQUALIZER) as EqualizerFragment2?
+            eqFragment = childFragmentManager.findFragmentByTag(TAG_EQUALIZER) as EqualizerFragment3?
             eqFragment?.let { fragmentTransaction.show(it) }
         } else {
             fragmentTransaction.add(
-                R.id.equalizer, EqualizerFragment2().also { eqFragment = it }, TAG_EQUALIZER
+                R.id.equalizer, EqualizerFragment3().also { eqFragment = it }, TAG_EQUALIZER
             )
         }
 
